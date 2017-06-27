@@ -69,7 +69,7 @@ function FileUploadCtrl(scope) {
         xhr.addEventListener("load", uploadComplete, false)
         xhr.addEventListener("error", uploadFailed, false)
         xhr.addEventListener("abort", uploadCanceled, false)
-        xhr.open("POST", "http://10.146.95.172:3000/api/file")
+        xhr.open("POST", "http://10.17.14.26:3000/api/file")
         scope.progressVisible = true
         xhr.send(fd)
     }

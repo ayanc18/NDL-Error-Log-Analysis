@@ -1,6 +1,6 @@
 <html lang="en" >
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
-<script src="js/app.js"></script>
+<script src="js/total.js"></script>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Angular Material style sheet -->
@@ -26,7 +26,7 @@
   <div flex="80"> </div>
 </md-toolbar>
 <div flex layout="row">
-  <div layout="column" flex="66" flex-offset="15"  >
+  <div layout="column" flex="90" flex-offset="5" >
    
    <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tbody>
@@ -36,31 +36,48 @@
       <h2>Total level wise count of Error/Warning</h2>
       <hr>
       <div layout="row">
-        <div flex>
+        <div flex >
+<!--
           <div>
-            <p><strong> levels </strong></p>
+            <p><strong> 
+            Levels </strong></p>
           </div>
-          <div class="vertical">
-            <div class="container">
+-->
+          <div >
+            <md-input-container class="container md-block">
+              <label>Levels</label>
+              <md-select ng-model="levels">
+                <md-option ng-repeat="level in levels" ng-click="setLevel(level);">{{level.name}}</md-option>
+              </md-select>
+            </md-input-container>
+            <!-- <div class="container">
               <div ng-repeat="level in levels" ng-click="setLevel(level);" >
-                <div ng-class="(level.isAttempted === true)?'pressed':'nonpressed'" layout-padding layout-margin> {{level.value}} </div>
+                <div ng-class="(level.isAttempted === true)?'pressed':'nonpressed'" layout-padding layout-margin> {{level.name}} </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
         <div flex>
+<!--
           <div>
             <p><strong> Error/Warning </strong></p>
           </div>
-          <div class="vertical">
-            <div class="container"> 
+-->
+         
+          	<md-input-container class="md-block">
+              <label>Error/Warning</label>
+              <md-select ng-model="items">
+                <md-option ng-repeat="item in items" ng-click="setItem(item);">{{item.name}}</md-option>
+              </md-select>
+            </md-input-container>
+            <!-- <div class="container">  -->
               <!--select-->
-              <div ng-repeat="item in items" ng-click="setItem(item);">
-                <div ng-class="(item.isAttempted === true)?'pressed':'nonpressed'" layout-padding layout-margin> {{item.value}} </div>
-              </div>
+              <!-- <div ng-repeat="item in items" ng-click="setItem(item);">
+                <div ng-class="(item.isAttempted === true)?'pressed':'nonpressed'" layout-padding layout-margin> {{item.name}} </div>
+              </div> -->
               <!--/select--> 
-            </div>
-          </div>
+            <!-- </div> -->
+        
         </div>
         <div flex layout-align="center center" layout="row" style=" background-color:#F6F5F9 " >
           <md-button ng-click="submitList();" class="md-raised md-primary">Submit</md-button>
@@ -93,15 +110,7 @@
       </table></td>
     </tr>
   </tbody>
-</table>
-
-
-  
-     
-    
-      
-      
-     
+</table>     
   </div>
   <div flex> </div>
 </div>

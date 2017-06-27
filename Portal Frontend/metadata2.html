@@ -96,7 +96,7 @@
 				<div ng-repeat="availableOption in availableOptions" ng-click="optionAttempted(availableOption)">
 				<div ng-class="(availableOption.isAttempted === true)?'pressed':'nonpressed'" layout="row" style="padding: 8px 10px; border-bottom: solid 1px #000;">
 				<span flex="85"  >{{availableOption.value}}</span> 
-				<span flex="15" layout="row" layout-align="center center" style="background: #fff;">{{availableOption.count}}</span>
+				<span flex="15" layout="row" layout-align="center center" class="roundcorner">{{availableOption.count}}</span>
 				</div>
 				</div>
 			</div>

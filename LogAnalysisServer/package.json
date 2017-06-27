@@ -1,0 +1,22 @@
+{
+  "name": "log_analysis_server",
+  "version": "1.0.0",
+  "description": "Server for Analyzing the Error Logs of NDL",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subhasisghosal/NDL_Error_Log_Analysis.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/subhasisghosal/NDL_Error_Log_Analysis/issues"
+  },
+  "homepage": "https://github.com/subhasisghosal/NDL_Error_Log_Analysis#readme",
+  "dependencies": {
+    "express": "^4.15.3"
+  }
+}

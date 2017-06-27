@@ -1,4 +1,4 @@
-var app = angular.module('metadataapp', []);
+var app = angular.module('metadataapp', ['ngMaterial', 'ngMessages']);
 
 app.controller('totalCtrl', function($scope,$http) {
 	
@@ -9,16 +9,23 @@ app.controller('totalCtrl', function($scope,$http) {
 	
 	
 	$scope.levels = [];
-	$scope.levels.push({value:"all",isAttempted: false});
-	$scope.levels.push({value:"itemLevel", isAttempted:false});
-	$scope.levels.push({value:"metadataLevel", isAttempted:false});
-	$scope.levels.push({value:"sourceLevel", isAttempted:false});
+	$scope.levels.push({name: "All", value:"all",isAttempted: false});
+	$scope.levels.push({name: "Item Level", value:"itemLevel", isAttempted:false});
+	$scope.levels.push({name: "Metadata Level", value:"metadataLevel", isAttempted:false});
+	$scope.levels.push({name: "Source Level", value:"sourceLevel", isAttempted:false});
 
 	$scope.items = [];
-	$scope.items.push({value:"all", isAttempted: false});
-	$scope.items.push({value:"err", isAttempted: false});
-	$scope.items.push({value:"warn", isAttempted: false});
+	$scope.items.push({name: "All", value:"all", isAttempted: false});
+	$scope.items.push({name: "Errors", value:"err", isAttempted: false});
+	$scope.items.push({name: "Warnings", value:"warn", isAttempted: false});
 
+	//Testing purpose
+	$scope.user = {state: 'CA'}
+	$scope.states = ('AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS ' +
+    'MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI ' +
+    'WY').split(' ').map(function(state) {
+        return {abbrev: state};
+      });
 	
 	var url = "http://10.146.95.172:3000/api/report";
 
