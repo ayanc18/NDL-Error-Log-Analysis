@@ -57,6 +57,13 @@ var commonSchema = mongoose.Schema({
 	warn_flag: Boolean
 })
 
+var infoCodeSchema = mongoose.Schema({
+	informationCode: String,
+	description: String,
+	level: String,
+	warn_flag: Boolean
+})
+
 const lim = 10
 
 var bodyParser = require('body-parser')
@@ -377,9 +384,9 @@ app.post('/api/itemlevel', function (req, res) {
 app.post('/api/report', function (req, res) {
 	var collectionName = req.body.collectionName
 	var level = (req.body.level==="all")?["itemLevel","metadataLevel","sourceLevel"]:req.body.level
-	// var flag = req.body.flag
 	var flagValue = (req.body.flag==="warn")?true:(req.body.flag==="err")?false:[true,false]
 	var commonDemo = mongoose.model('commonDemo', commonSchema, collectionName)
+	var infoCodeDemo = mongoose.model('infoCodeDemo', infoCodeSchema, "informationCodeMaster")
 	var resObj = {item:[]}
 	var qs = {"level":level,"warn_flag":flagValue}
 	commonDemo.find()
@@ -388,19 +395,23 @@ app.post('/api/report', function (req, res) {
 		if (err) throw err;
 		async.eachSeries(items,function(item,calback){
 			console.log(item)
-			getCount = function(q,callback){
-				commonDemo.find(q)
-				.where("informationCode").equals(item)
-				.count(function(err,cnt){
-					resObj.item.push({"name":item,"count":cnt})
-					// console.dir(resObj)
-					callback && callback(resObj)
-				})
-			}
-			getCount(qs,function(data){
-				// console.dir(data)
-				calback()
-			});
+			infoCodeDemo.find(function(err,infoCodes){
+				var lvl = infoCodes[0].level
+				console.log(infoCodes)
+				getCount = function(q,callback){
+					commonDemo.find(q)
+					.where("informationCode").equals(item)
+					.count(function(err,cnt){
+						resObj.item.push({"name":item,"count":cnt, "level":lvl})
+						// console.dir(resObj)
+						callback && callback(resObj)
+					})
+				}
+				getCount(qs,function(data){
+					// console.dir(data)
+					calback()
+				});
+			}).where("informationCode").equals(item)
 		},function(err){
 			if (err) throw err
 			console.log("Done")

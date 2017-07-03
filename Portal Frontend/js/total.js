@@ -27,7 +27,9 @@ app.controller('totalCtrl', function($scope,$http) {
         return {abbrev: state};
       });
 	
-	var url = "http://10.146.95.172:3000/api/report";
+	// var url = "http://10.146.95.172:3000/api/report";
+		var url = "localhost:3000/api/report";
+
 
 	$scope.setLevel = function(level){
 		$scope.selectedOptionlevel = level.value;

@@ -10,15 +10,17 @@ app.controller('iCtrl', function($scope,$http) {
 	$scope.availableInfoCode = [];
 	$scope.selectedOption = 'informationCode';
 	$scope.collectionName = "test_source";
-	$scope.flag = false;
+	$scope.flag = 0;
 	
 	var url = "http://10.146.95.172:3000/api/itemlevel";
 	$scope.setChoice = function(choice){
 		$scope.selectedOption = choice;
 		if(choice === 'informationCode')
-			$scope.flag = true;
+			$scope.flag = 1;
 		else if(choice === 'fieldName')
-			$scope.flag = false;
+			$scope.flag = 2;
+		else if(choice === 'fieldValue')
+			$scope.flag = 3;
 	};
 	
 	$scope.submitList = function(){
@@ -73,6 +75,41 @@ app.controller('iCtrl', function($scope,$http) {
 				$scope.leftListObtained = true;
 				
 		} else if ($scope.selectedList.length > 0 && $scope.selectedOption === 'fieldName'){
+				
+				console.log($scope.selectedList);
+				
+				$scope.availableItems = [];
+				$scope.rightListObtained = true;
+
+				
+				var fieldResult = $scope.selectedList.map(function(item) {
+					return '"' + item + '"';
+				});
+				var fieldNameValue = fieldResult.join(', ');
+				
+				console.log(fieldNameValue);
+				
+			var data = {
+				"collectionName": $scope.collectionName,
+				"choice": $scope.selectedOption,
+				"informationCode": "NULL",
+				"pageToken" : 1,
+				"fieldName" : fieldNameValue
+			};
+			var responsePromise = $http.post(url,data);
+			responsePromise.success(function(data, status, headers) {
+					$scope.availableInfoCode = data.infoCode;
+                     $scope.availableItems = data.item;	
+					console.log($scope.availableItems);
+					 console.log($scope.availableInfoCode);
+                });
+            responsePromise.error(function(data, status, headers) {
+                    alert("AJAX failed!");
+                });
+				$scope.leftListObtained = true;
+				$scope.selectedList=[];
+				
+		} else if ($scope.selectedList.length > 0 && $scope.selectedOption === 'fieldValue'){
 				
 				console.log($scope.selectedList);
 				

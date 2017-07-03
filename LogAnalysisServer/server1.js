@@ -105,6 +105,24 @@ app.post('/api/report', function (req, res) {
 	var commonDemo = mongoose.model('commonDemo', commonSchema, collectionName)
 	var resObj = {item:[]}
 	var qs = {"level":level,"warn_flag":flagValue}
+	var pipeline = [
+	{ "$lookup": { 
+		"from": "informationCodeMaster", 
+		"localField": "informationCode", 
+		"foreignField": "informationCode", 
+		"as": "detailedInfoCodes"
+	}}, 
+	{ "$unwind": "$detailedInfoCodes" },
+	{ "$project": { 
+		"informationCode": 1, 
+		"level": "$detailedInfoCodes.level", 
+		"warn_flag": "$detailedInfoCodes.warn_flag", 
+		"description": 1
+	}}
+	]
+	// commonDemo.aggregate(pipeline).exec(function(err, infoCodes) {
+	// 		    // console.dir(infoCodes);
+	// });
 	commonDemo.find()
 	.distinct("informationCode",qs,function(err, items){
 		// console.log(items)
