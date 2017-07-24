@@ -97,6 +97,19 @@ app.post('/test', function(request, response){
 	})
 })
 
+app.post('/testRef', function(request, response){
+	var collectionName = request.body.collectionName
+	var commonDemo = mongoose.model('commonDemo', commonSchema, collectionName)
+	var data = commonDemo.findOne({'handle' : '123456789/14881'},'_id',function(err,res){
+		console.log(res)
+	})
+	console.dir(data)
+	data.exec(function(err,item){
+		console.log(item)
+	})
+	response.send("Success")
+})
+
 app.post('/api/report', function (req, res) {
 	var collectionName = req.body.collectionName
 	var level = (req.body.level==="all")?["itemLevel","metadataLevel","sourceLevel"]:req.body.level
@@ -245,6 +258,6 @@ app.post('/api/file', function (req, res) {
 	});
 })
 
-app.listen(3010, "10.17.14.26", function () {
+app.listen(3010,  function () {
   console.log('Example app listening on port 3010!')
 })

@@ -64,12 +64,17 @@ function FileUploadCtrl(scope) {
         for (var i in scope.files) {
             fd.append("uploadedFile", scope.files[i])
         }
+        fd.append("userId", "johnny")
+        fd.append("source", "ASI")
+        fd.append("batch", "5")
+        fd.append("commentLS", "Please check it out")
         var xhr = new XMLHttpRequest()
         xhr.upload.addEventListener("progress", uploadProgress, false)
         xhr.addEventListener("load", uploadComplete, false)
         xhr.addEventListener("error", uploadFailed, false)
         xhr.addEventListener("abort", uploadCanceled, false)
-        xhr.open("POST", "http://10.146.95.172:3000/api/file")
+        // xhr.open("POST", "http://10.146.95.172:3000/api/file")
+        xhr.open("POST", "http://localhost:3000/api/issuetracker")
         scope.progressVisible = true
         xhr.send(fd)
     }

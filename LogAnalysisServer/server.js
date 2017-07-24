@@ -1,6 +1,7 @@
 var express = require('express')
 var app = express()
 
+var session = require('express-session')
 /*var allowCrossDomain = function(req,res){
 	res.header('Access-Control-Allow-Origin', '*')
 	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
@@ -23,6 +24,8 @@ var arrayUnique = require('npm-array-unique')
 var unique = require('array-unique');
 
 var async = require('async')
+
+var bcrypt = require('bcrypt');
 
 var itemSchema = mongoose.Schema({
 	handle: String,
@@ -64,24 +67,73 @@ var infoCodeSchema = mongoose.Schema({
 	warn_flag: Boolean
 })
 
+var userSchema = mongoose.Schema({
+	userId: { type : String , unique : true, required : true, dropDups: true },
+	password: String,
+	firstName: String,
+	lastName: String,
+	role: String
+})
+
+var dataSourceSchema = mongoose.Schema({
+	sourceCode: String,
+	sourceName: String
+})
+
+var assignmentSchema = mongoose.Schema({
+	userId: String,
+	sourceCode: String
+})
+
+var logDetailSchema = mongoose.Schema({
+	user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', field: '_id' },
+	fileName: String,
+	dataSource: { type: mongoose.Schema.Types.ObjectId, ref: 'dataSource', field: '_id' },
+	batch: String,
+	comments: String,
+	uploadTime: { type : Date, default: Date.now }
+})
+
+var uploadLogSchema = mongoose.Schema({
+	userID: String,
+	fileName: String,
+	sourceCode: String,
+	batch: String,
+	comments: String,
+	collectionName: String,
+	uploadTime: { type : Date, default: Date.now }
+})
+
+var IssueTrackerSchema = mongoose.Schema({
+	userId: String,
+	sourceCode: String,
+	batch: String,
+	fileName: String,
+	commentLS: String,
+	commentCS: String
+})
+
 const lim = 10
 
 var bodyParser = require('body-parser')
+app.use(session({secret: 'ssshhhhh',saveUninitialized: true,resave: true}))
 app.use(bodyParser.json()) // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })) // support encoded bodies
-// app.use(function (req, res, next) {
-//     // Website you wish to allow to connect
-//     res.setHeader('Access-Control-Allow-Origin', '*')
-//     // Request methods you wish to allow
-//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE')
-//     // Request headers you wish to allow
-//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type')
-//     // Set to true if you need the website to include cookies in the requests sent
-//     // to the API (e.g. in case you use sessions)
-//     res.setHeader('Access-Control-Allow-Credentials', true)
-//     // Pass to next layer of middleware
-//     next()
-// }) // support encoded bodies
+app.use(function (req, res, next) {
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE')
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type')
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true)
+    // Pass to next layer of middleware
+    next()
+}) // support encoded bodies
+
+var sess
 // data retrieval
 app.post('/api/metadatalevel', function (req, res) {
 	var collectionName = req.body.collectionName
@@ -395,8 +447,8 @@ app.post('/api/report', function (req, res) {
 		if (err) throw err;
 		async.eachSeries(items,function(item,calback){
 			console.log(item)
-			infoCodeDemo.find(function(err,infoCodes){
-				var lvl = infoCodes[0].level
+			infoCodeDemo.findOne(function(err,infoCodes){
+				var lvl = infoCodes.level
 				console.log(infoCodes)
 				getCount = function(q,callback){
 					commonDemo.find(q)
@@ -420,12 +472,79 @@ app.post('/api/report', function (req, res) {
 	})
 })
 
+//For Testing purpose
+app.post('/testRef', function(request, response){
+	var User = mongoose.model('User',userSchema,"userMaster")
+	var dataSource = mongoose.model('dataSource',dataSourceSchema,"dataSources")
+  	var LogDemo = mongoose.model("LogDemo", logDetailSchema,"logDetails")
+  	var userid = ""
+  	var sourceid = ""
+  	userSchema.statics.search = function (str, callback) {
+		return this.findOne({'userId' : str},'_id', callback);
+	};
+	var data1 = User.findOne({'userId' : 'johnny'},'_id',function(err,res){
+		console.log(res._id)
+		userid = res._id
+		return userid
+	})
+	var data2 = dataSource.findOne({'sourceCode' : 'ASI'},'_id',function(err,res){
+		console.log(res._id)
+		sourceid = res._id
+	})
+	
+	var newUser = new User({
+		userId: "johnny",
+		password: "pass",
+		firstName: "Johnny",
+		lastName: "Doe"
+	})
+	var source = new dataSource({
+		sourceCode: "ASI",
+		sourceName: "Archeological Survey of India"
+	})
+	var record = new LogDemo({
+		user: newUser._id,
+		fileName: "LOG_snltr.zip",
+		dataSource: source._id,
+		batch: "2",
+		comments: "This is the first Comment"
+	})
+	record.save(function(err,record){
+		if (err) return console.error(err);
+		console.log(record)
+	})
+	response.send("Success")
+})
+
+//For Testing purpose
+app.get('/testRef', function(request, response){
+	var User = mongoose.model('User',userSchema,"userMaster")
+	var dataSource = mongoose.model('dataSource',dataSourceSchema,"dataSources")
+	var LogDemo = mongoose.model("LogDemo", logDetailSchema,"logDetails");
+	LogDemo.findOne({'fileName' : 'LOG_snltr.zip'}).
+	populate('dataSource').
+	exec(function(err,item){
+		if (err) return handleError(err);
+		console.log(item);
+		response.send(item);
+	})
+})
+
 // file upload
 app.post('/api/file', function (req, res) {
+	console.dir(req.body)
 	if (!req.files)
-    		return res.status(400).send('No files were uploaded.'); 
+    	return res.status(400).send('No files were uploaded.');
+    var userId = req.body.userId
+    var source = req.body.source
+    var batch = req.body.batch
+    var comments = req.body.comments
   // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file 
   	let sampleFile = req.files.uploadedFile;
+  	console.log(sampleFile.name)
+  	var User = mongoose.model('User',userSchema,"userMaster")
+  	var LogDemo = mongoose.model("LogDemo", logDetailSchema,"logDetails")
+  	var uploadLog = mongoose.model("uploadLog", uploadLogSchema,"logDetails")
  	uploadPath = '/home/subhasis/NDL_Error_Log_Analysis/LogAnalysisServer/upload/'+sampleFile.name
  	extractPath = '/home/subhasis/NDL_Error_Log_Analysis/LogAnalysisServer/upload/unzipped/'
   // Use the mv() method to place the file somewhere on your server
@@ -445,13 +564,28 @@ app.post('/api/file', function (req, res) {
 	  if (err) {
 	    console.log('Error', err);
 	  } else {
-	    console.log(res);
-	    sourceName = "test_source"
+	    // console.log(res);
+	    // console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	    console.log(sampleFile.name.split(".")[0])
+	    sourceName = userId+"_"+sampleFile.name.split(".")[0]+"_batch_"+batch
+	    var entry = new uploadLog({
+	    	userID: userId,
+			fileName: sampleFile.name,
+			dataSource: source,
+			batch: batch,
+			comments: comments,
+			collectionName: sourceName
+	    })
+	    console.log(entry)
+	    entry.save(function(err,record){
+			if (err) return console.error(err);
+		})
+	    // sourceName = sampleFile.name.split(".")[0]
 	    var ItemDemo = mongoose.model('ItemDemo', itemSchema, sourceName)
 	    var MetadataDemo = mongoose.model('MetadataDemo', metadataSchema, sourceName)
 	    var SourceDemo = mongoose.model('SourceDemo', sourceSchema, sourceName)
 	    for(f in res){
-	    	console.log(res[f])
+	    	// console.log(res[f])
 	    	var level = ""
 	    	if(/ItemError/.test(res[f])){
 	    		level = "itemLevel"
@@ -472,8 +606,8 @@ app.post('/api/file', function (req, res) {
  				var jsonCont =  JSON.parse(content);
 	 			// console.dir(jsonCont)
  				jsonCont.forEach(function(item) {
- 					console.log(item)
- 					console.log("--------------------------")
+ 					// console.log(item)
+ 					// console.log("--------------------------")
  					flag = /ERR/.test(item.informationCode) ? false : true
  					switch(level){
  						case "itemLevel":
@@ -509,9 +643,145 @@ app.post('/api/file', function (req, res) {
  					})
  				})
 	    	}
-	    	console.log("\n*********************************\n")
+	    	// console.log("\n*********************************\n")
 	    }
 	  }
+	});
+})
+
+app.post('/api/issuetracker', function (req, res) {
+	if (!req.files)
+    	return res.status(400).send('No files were uploaded.');
+    var userId = req.body.userId
+    var source = req.body.source
+    var batch = req.body.batch
+    var comments = req.body.commentLS
+  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file 
+  	let sampleFile = req.files.uploadedFile;
+  	console.log(sampleFile.name)
+  	var IssueTracker = mongoose.model("IssueTracker", IssueTrackerSchema, "IssueTrackerDetails")
+ 	uploadPath = '/home/subhasis/NDL_Error_Log_Analysis/LogAnalysisServer/upload/'+sampleFile.name
+  // Use the mv() method to place the file somewhere on your server
+  	sampleFile.mv(uploadPath, function(err) {
+    	if (err)
+      		return res.status(500).send(err);
+      	var record = new IssueTracker({
+      		userId: userId,
+			sourceCode: source,
+			batch: batch,
+			fileName: sampleFile.name,
+			commentLS: comments,
+			commentCS: ""
+      	})
+      	record.save(function(err,record){
+			if (err) return console.error(err);
+			console.log(record)
+		})
+    	res.send('File uploaded!');
+  	});
+  	
+})
+
+app.post('/admin/addsource', function (req, res) {
+	var sources = "["+JSON.parse(req.body.source)+"]"
+	console.log(sources)
+	var dataSource = mongoose.model('dataSource', dataSourceSchema, 'dataSources')
+	// for(i in sources){
+	for (var i = 0; i < sources.length; i++) {
+		var record = new dataSource(sources[i])
+		record.save(function(err,record){
+			if (err) return console.error(err);
+			console.log(record)
+		})
+	}
+	res.send("Source Added")
+})
+
+app.get('/api/file', function (req, res) {
+	sess = req.session
+	var source = req.get("source")
+    var batch = req.get("batch")
+    console.log(sess)
+    res.send("Welcome"+" "+source+" "+batch)
+})
+
+app.post('/api/getCollections', function (req, res) {
+	var searchString = req.body.item
+	console.log(searchString)
+	var dataSource = mongoose.model('dataSource', dataSourceSchema, 'dataSources')
+	dataSource.find({sourceName: new RegExp('^'+searchString, "i")}, function(err, doc) {
+		console.log(doc)
+		res.send(doc)
+	})
+	// res.send("Collections")
+})
+
+app.delete('/api/file', function (req, res) {
+
+})
+
+app.post('/users/register', function(req, res){
+	userid = req.body.userId
+	password = req.body.password
+	firstName = req.body.firstName
+    lastName = req.body.lastName
+    type = req.body.userType
+    var User = mongoose.model('User',userSchema,"userMaster")
+    bcrypt.hash(password, 10, function(err, hash) {
+	  // Store hash in your password DB. 
+	  var record = new User({
+	  	userId: userid,
+	  	password: hash,
+	  	firstName: firstName,
+	  	lastName: lastName,
+	  	role: type
+	  })
+	  record.save(function(err,record){
+	  	if (err) return console.error(err);
+	  	res.send(record)
+	  })
+	});
+})
+
+app.post('/users/authenticate', function(req, response){
+	sess = req.session
+	sess.userid = req.body.userId
+	sess.password = req.body.password
+	sess.loginStatus = false
+	var User = mongoose.model('User',userSchema,"userMaster")
+	User.findOne(function(err,user){
+		if(!user){
+			console.log("If block")
+			// throw err
+			// response.end(err.message)
+			response.send("User Not Found")
+		}
+		else{
+			console.log("Else Block"+user)
+			bcrypt.compare(sess.password, user.password, function(err, res) {
+				if(err) throw err
+			    if(res){
+			    	sess.loginStatus = true
+			    	console.log(sess)
+			    	response.send(sess)
+			    	// response.send("Login Success")
+			    }
+			    else{
+			    	// sess.destroy();
+			    	response.end("Login Failed")
+			    }
+			})
+		}
+	}).where('userId').equals(sess.userid)
+})
+
+app.get('/logout', function(req, res) {
+	req.session.destroy(function(err) {
+		if (err) {
+			console.log(err);
+		} else {
+			res.redirect('/');
+		}
 	});
 })
 
