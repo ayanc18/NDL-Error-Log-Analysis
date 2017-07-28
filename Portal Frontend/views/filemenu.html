@@ -39,7 +39,7 @@
                                     <md-content class="md-padding" id="popupContainer" ng-cloak>
                                         <h4>Upload a zip file</h4>
                                         <form ng-submit="$event.preventDefault()">
-                                            <md-autocomplete 
+                                            <!-- <md-autocomplete 
                                             ng-disabled="isDisabled" 
                                             md-no-cache="true" 
                                             md-selected-item="selectedItem" 
@@ -52,7 +52,13 @@
                                             placeholder="Select a Data Source">
                                                 <md-item-template> <span md-highlight-text="searchText" md-highlight-flags="^i" ng-click="selectedItemChange(item)">{{item.sourceName}}</span> </md-item-template>
                                                 <md-not-found> No sources matching "{{searchText}}" were found. <a ng-click="newSource(searchText)">Create a new one!</a> </md-not-found>
-                                            </md-autocomplete>
+                                            </md-autocomplete> -->
+                                            <md-input-container class="md-block" flex>
+                                                <label>Source</label>
+                                                <md-select name="source" ng-model="file.source" ng-click="getSources()">
+                                                    <md-option ng-repeat="source in sourceInfo" value="{{source.sourceCode}}">{{source.sourceName}}</md-option>
+                                                </md-select>
+                                            </md-input-container>
                                             <br>
                                             <md-input-container class="md-block">
                                                 <label>Select Batch</label>
@@ -67,12 +73,12 @@
                                                 <label>Enter your comments about the log files</label>
                                                 <textarea ng-readonly="false" ng-model="file.comment" md-maxlength="100" rows="3" md-select-on-focus></textarea>
                                             </md-input-container>
-                                            <div layout="column" flex>
+                                            <!-- <div layout="column" flex>
                                                 <md-content>
-                                                    <lf-ng-md-file-input lf-submit-label="Upload" lf-files="submitButtonFiles" lf-on-submit-click="onSubmitClick" submit ng-change="onSubmitFilesChange()" progress></lf-ng-md-file-input>
+                                                    <lf-ng-md-file-input lf-submit-label="Upload" lf-files="files" lf-on-submit-click="onSubmitClick" submit ng-change="onSubmitFilesChange()" progress></lf-ng-md-file-input>
                                                 </md-content>
                                             </div>
-                                            <md-progress-linear md-mode="determinate" value="20"></md-progress-linear>
+                                            <md-progress-linear md-mode="determinate" value="20"></md-progress-linear> -->
                                             <!--                      <div layout="row" layout-align="start center">-->
                                             <!--     <div ng-controller="AppCtrl">-->
                                             <!-- <div class="dialog-demo-content" layout="row" layout-wrap layout-margin layout-align="right">
@@ -81,6 +87,8 @@
                                             <div ng-if="status" id="status">
                                                 <b layout="row" layout-align="center center" class="md-padding">{{status}}</b>
                                             </div>
+                                            <input type="file" name="file" id='file' onchange="angular.element(this).scope().uploadFile()"/>
+                                            <input type='submit' value='Upload!' />
                                             <!--  </div>-->
                                             <!--                      </div>-->
                                             <p> </p>

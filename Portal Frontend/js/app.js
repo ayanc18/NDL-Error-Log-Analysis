@@ -16,6 +16,10 @@ logApp.config(['$routeProvider', '$compileProvider','$mdThemingProvider', functi
 		templateUrl: 'views/filemenu.html',
 		controller: 'fileUploadCtrl'
 	})
+	.when('/admin',	{
+		templateUrl: 'views/adminpanel.html',
+		controller: 'adminCtrl'
+	})
 	.when('/totalreport',	{
 		templateUrl: 'views/total.html',
 		controller: 'totalCtrl'
@@ -24,4 +28,9 @@ logApp.config(['$routeProvider', '$compileProvider','$mdThemingProvider', functi
 		redirectTo: '/login'
 	});
 }])
+
+logApp.constant('config', {
+	apiUrl:'http://10.17.14.26:8080',
+	serverUrl:'http://10.17.14.26:3000'
+})
 
